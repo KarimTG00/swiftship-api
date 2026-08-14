@@ -18,6 +18,21 @@ export const env = {
   // Elle est copiée sur chaque expédition à la création, pour qu'un ancien
   // colis conserve son point de départ même si l'agence déménage.
   adresseAgence: process.env.ADRESSE_AGENCE ?? "",
+
+  // Secret de signature des cookies de session.
+  // Le repli n'est tolere qu'en developpement : en production, un secret connu
+  // permettrait de forger une session d'administrateur.
+  secretSession: process.env.SECRET_SESSION ?? "",
+
+  // Duree de vie de la session admin.
+  dureeSessionJours: Number(process.env.DUREE_SESSION_JOURS ?? 7),
 };
 
 export const enProduction = env.nodeEnv === "production";
+
+if (enProduction && !env.secretSession) {
+  throw new Error(
+    "SECRET_SESSION est obligatoire en production : sans lui, un cookie de " +
+      "session d'administrateur peut etre forge.",
+  );
+}

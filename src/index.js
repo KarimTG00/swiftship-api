@@ -4,13 +4,15 @@ import { connecterBase } from "./config/db.js";
 import { initSockets } from "./sockets/index.js";
 import { env } from "./config/env.js";
 
+// La base est connectee AVANT la creation de l'application : le magasin de
+// sessions reutilise cette connexion, il doit donc la trouver etablie.
+await connecterBase();
+
 const app = creerApp();
 const serveur = http.createServer(app);
 
 // socket.io se greffe sur le meme serveur HTTP qu'Express : un seul port.
 initSockets(serveur);
-
-await connecterBase();
 
 // Sans ce gestionnaire, un port deja pris fait planter Node sur un
 // "Unhandled 'error' event" illisible.

@@ -4,7 +4,9 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { env } from "./config/env.js";
+import { creerSession } from "./config/session.js";
 import routesSante from "./routes/health.js";
+import routesAuth from "./routes/auth.js";
 
 export function creerApp() {
   const app = express();
@@ -29,7 +31,10 @@ export function creerApp() {
     }),
   );
 
+  app.use(creerSession());
+
   app.use("/api/health", routesSante);
+  app.use("/api/auth", routesAuth);
 
   // Express 5 : le joker ne s'ecrit plus "*" mais "/{*splat}".
   app.use("/{*splat}", (req, res) => {
