@@ -1,0 +1,12 @@
+node_modules
+
+# Variables d'environnement (jamais versionnees)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+.DS_Store
