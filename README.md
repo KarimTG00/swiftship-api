@@ -1,7 +1,17 @@
 # SwiftShipe — API
 
 API de l'application de gestion et de suivi de livraisons SwiftShipe.
-Le front est dans un dépôt séparé (React / Vite).
+
+Le front est un **dépôt git distinct**, rangé dans le même dossier parent :
+
+```
+swiftShipe/
+  frontend/         dépôt du front (React / Vite)
+  swiftShipe-api/   ce dépôt
+```
+
+Le dossier `swiftShipe/` n'est qu'un conteneur : il n'est pas versionné,
+chaque sous-dossier a son propre `.git`.
 
 ## Stack
 

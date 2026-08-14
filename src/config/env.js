@@ -12,6 +12,12 @@ export const env = {
   // En production : l'URL du front (sous-domaine du même domaine que l'API,
   // sinon le cookie d'identité anonyme ne sera pas transmis).
   origineClient: process.env.ORIGINE_CLIENT ?? "http://localhost:5173",
+
+  // Adresse de l'agence : point de départ par défaut des expéditions et
+  // origine de l'itinéraire affiché sur la page de suivi (§11).
+  // Elle est copiée sur chaque expédition à la création, pour qu'un ancien
+  // colis conserve son point de départ même si l'agence déménage.
+  adresseAgence: process.env.ADRESSE_AGENCE ?? "",
 };
 
 export const enProduction = env.nodeEnv === "production";
