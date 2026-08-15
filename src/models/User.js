@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema(
     // Ca evite de le faire fuir par inadvertance dans une reponse API.
     passwordHash: { type: String, required: true, select: false },
     nom: { type: String, required: true, trim: true },
+    // Coordonnee de contact affichee au client sur la page de suivi, pour
+    // qu'il puisse joindre le vendeur qui a enregistre son colis.
+    telephone: { type: String, trim: true },
     role: { type: String, enum: ROLES, required: true },
     actif: { type: Boolean, default: true },
   },

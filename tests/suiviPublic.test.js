@@ -12,14 +12,19 @@ const BASE_TEST = "swiftshipe_test_suivi";
 const actif = Boolean(env.mongodbUri);
 const options = { skip: actif ? false : "MONGODB_URI absent" };
 
-// Valeurs sentinelles : le test verifie qu'aucune n'apparait dans la reponse
-// publique, quel que soit le champ ou elle se trouve.
-const PRIVE = {
+// Coordonnees du destinataire : exposees publiquement par choix produit
+// assume. La page de suivi n'etant protegee par aucune authentification,
+// quiconque possede le numero les voit.
+const DESTINATAIRE = {
   nom: "SENTINELLE_NOM",
   telephone: "SENTINELLE_TELEPHONE",
+  email: "sentinelle_email@exemple.com",
   adresse: "SENTINELLE_ADRESSE",
   ville: "SENTINELLE_VILLE",
-  description: "SENTINELLE_DESCRIPTION",
+};
+
+// Ce qui reste prive en toutes circonstances.
+const PRIVE = {
   commentaire: "SENTINELLE_COMMENTAIRE_INTERNE",
 };
 
@@ -48,22 +53,18 @@ before(async () => {
   const auteur = await User.create({
     email: "auteur@test.local",
     nom: "Auteur",
+    telephone: "0700000000",
     role: "ADMIN",
     passwordHash: "peu-importe",
   });
 
   const expedition = await creerExpeditionAvecTracking({
-    destinataire: {
-      nom: PRIVE.nom,
-      telephone: PRIVE.telephone,
-      adresse: PRIVE.adresse,
-      ville: PRIVE.ville,
-    },
+    destinataire: { ...DESTINATAIRE },
     origine: "Entrepot central",
     destination: "Zone Nord",
     distanceKm: 137,
     colis: {
-      description: PRIVE.description,
+      description: "Carton scelle",
       taille: "M",
       poids: 2.4,
       valeur: 150000,
@@ -109,7 +110,7 @@ test("le suivi est accessible sans authentification", options, async () => {
   assert.equal(r.corps.colis.trackingNumber, tracking);
 });
 
-test("AUCUNE donnee personnelle ne sort par le suivi public", options, async () => {
+test("les commentaires internes ne sortent jamais", options, async () => {
   const r = await suivre(tracking);
   const brut = JSON.stringify(r.corps);
 
@@ -122,13 +123,41 @@ test("AUCUNE donnee personnelle ne sort par le suivi public", options, async () 
   }
 });
 
-test("ni la valeur du colis, ni la distance, ni l'identifiant interne", options, async () => {
+test("ni la valeur du colis, ni l'identifiant interne", options, async () => {
   const r = await suivre(tracking);
   const brut = JSON.stringify(r.corps);
 
   assert.equal(brut.includes("150000"), false, "valeur du colis exposee");
-  assert.equal(brut.includes("137"), false, "distance exposee");
   assert.equal(brut.includes(idInterne), false, "identifiant interne expose");
+});
+
+test("le hash du mot de passe du vendeur ne sort pas", options, async () => {
+  const r = await suivre(tracking);
+  const brut = JSON.stringify(r.corps);
+
+  assert.equal(brut.includes("passwordHash"), false);
+  assert.equal(brut.includes("peu-importe"), false);
+  assert.equal(brut.includes("ADMIN"), false, "le role du vendeur ne sort pas");
+});
+
+test("les coordonnees du destinataire sont exposees", options, async () => {
+  const { colis } = (await suivre(tracking)).corps;
+
+  // Choix produit assume : cette page est publique et le numero de suivi
+  // n'authentifie personne.
+  assert.equal(colis.destinataire.nom, DESTINATAIRE.nom);
+  assert.equal(colis.destinataire.telephone, DESTINATAIRE.telephone);
+  assert.equal(colis.destinataire.email, DESTINATAIRE.email);
+  assert.equal(colis.destinataire.adresse, DESTINATAIRE.adresse);
+});
+
+test("les coordonnees du vendeur sont exposees", options, async () => {
+  const { colis } = (await suivre(tracking)).corps;
+
+  assert.equal(colis.agence.nom, "Auteur");
+  assert.equal(colis.agence.email, "auteur@test.local");
+  assert.equal(colis.agence.telephone, "0700000000");
+  assert.equal(colis.agence.adresse, "Entrepot central");
 });
 
 test("les informations utiles au client sont bien la", options, async () => {
@@ -138,6 +167,8 @@ test("les informations utiles au client sont bien la", options, async () => {
   assert.equal(colis.libelle, "En transit");
   assert.equal(colis.origine, "Entrepot central");
   assert.equal(colis.destination, "Zone Nord");
+  assert.equal(colis.distanceKm, 137);
+  assert.equal(colis.colis.description, "Carton scelle");
   assert.ok(colis.evenements.length > 0);
   assert.ok(colis.progression.arriveePrevueLe);
   assert.ok(colis.progression.ratio > 0 && colis.progression.ratio < 1);

@@ -28,7 +28,13 @@ router.get("/:numero", limiteSuivi, async (req, res) => {
 
   if (!trackingValide(numero)) return res.status(404).json(introuvable);
 
-  const expedition = await Shipment.findOne({ trackingNumber: numero }).lean();
+  // populate limite aux seuls champs de contact du vendeur : ni son role, ni
+  // son etat d'activation, et surtout jamais passwordHash (deja protege par
+  // select: false, mais la liste explicite evite toute surprise).
+  const expedition = await Shipment.findOne({ trackingNumber: numero })
+    .populate("creeParId", "nom email telephone")
+    .lean();
+
   if (!expedition) return res.status(404).json(introuvable);
 
   // serialiserPublic est une liste blanche : nom, telephone et adresse du

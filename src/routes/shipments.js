@@ -61,6 +61,7 @@ router.post("/", async (req, res) => {
     destinataire: {
       nom,
       telephone: texte(req.body?.destinataire?.telephone),
+      email: texte(req.body?.destinataire?.email),
       adresse: texte(req.body?.destinataire?.adresse),
       ville: texte(req.body?.destinataire?.ville),
     },

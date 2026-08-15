@@ -45,6 +45,9 @@ async function principal() {
   // resterait visible dans l'historique du shell et dans la liste des process.
   const email = (process.env.ADMIN_EMAIL ?? (await demander("Email : "))).toLowerCase();
   const nom = process.env.ADMIN_NOM ?? (await demander("Nom : "));
+  // Affiche au client sur la page de suivi, pour qu'il sache qui joindre.
+  const telephone =
+    process.env.ADMIN_TELEPHONE ?? (await demander("Telephone (facultatif) : "));
   const motDePasse = process.env.ADMIN_MOTDEPASSE ?? (await demander("Mot de passe : ", true));
 
   if (!email.includes("@")) {
@@ -69,6 +72,7 @@ async function principal() {
 
     existant.passwordHash = await hacher(motDePasse);
     existant.nom = nom || existant.nom;
+    if (telephone) existant.telephone = telephone;
     existant.actif = true;
     await existant.save();
     console.log(`Mot de passe de ${email} mis a jour.`);
@@ -76,6 +80,7 @@ async function principal() {
     await User.create({
       email,
       nom: nom || "Administrateur",
+      telephone: telephone || undefined,
       role: "ADMIN",
       passwordHash: await hacher(motDePasse),
     });

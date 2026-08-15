@@ -1,17 +1,90 @@
 import { LIBELLES } from "./statuts.js";
 import { arriveeAjustee, calculerProgression } from "./progression.js";
 
-// Regle de securite centrale (§37) : la page publique de suivi ne doit
-// renvoyer QUE des informations publiques.
+// ---------------------------------------------------------------------------
+// Ce que voit un visiteur muni d'un numero de suivi.
 //
-// Cette fonction est volontairement une LISTE BLANCHE, et volontairement une
-// fonction autonome plutot qu'une methode de schema ou un transform toJSON :
-// une methode de schema est contournee des que quelqu'un ecrit .lean() pour
-// optimiser une requete, et la protection disparait alors en silence.
+// Cette page est PUBLIQUE : le numero de tracking n'authentifie personne (§37).
+// Quiconque possede, intercepte ou photographie un numero voit ce qui suit.
 //
-// NE JAMAIS EXPOSER ICI : destinataire (nom, telephone, adresse, ville),
-// valeur du colis, description du colis, distance, identifiant interne,
-// createur, livreur, commentaires internes des evenements.
+// Passer ce drapeau a true masque partiellement les coordonnees du
+// destinataire (Y*** M***, 06 ** ** ** 89, y***@exemple.com) : le client
+// reconnait ses propres informations, un tiers n'en tire rien d'exploitable.
+export const MASQUER_COORDONNEES_DESTINATAIRE = false;
+
+// Restent privees en toutes circonstances : la valeur du colis (l'exposer
+// invite au vol), les commentaires internes des evenements, l'identifiant
+// interne de l'expedition et celui de son createur.
+// ---------------------------------------------------------------------------
+
+function masquerNom(valeur) {
+  if (!valeur) return null;
+  return valeur
+    .split(/\s+/)
+    .map((mot) => (mot.length <= 1 ? mot : `${mot[0]}${"*".repeat(mot.length - 1)}`))
+    .join(" ");
+}
+
+function masquerTelephone(valeur) {
+  if (!valeur) return null;
+  const chiffres = String(valeur).replace(/\D/g, "");
+  if (chiffres.length <= 2) return "*".repeat(chiffres.length);
+  return `${"*".repeat(chiffres.length - 2)}${chiffres.slice(-2)}`;
+}
+
+function masquerEmail(valeur) {
+  if (!valeur) return null;
+  const [avant, apres] = String(valeur).split("@");
+  if (!apres) return "***";
+  const debut = avant.slice(0, 1);
+  return `${debut}${"*".repeat(Math.max(avant.length - 1, 1))}@${apres}`;
+}
+
+function masquerAdresse(valeur) {
+  if (!valeur) return null;
+  return "Adresse communiquée à l'agence";
+}
+
+function destinatairePublic(destinataire) {
+  if (!destinataire) return null;
+
+  if (MASQUER_COORDONNEES_DESTINATAIRE) {
+    return {
+      nom: masquerNom(destinataire.nom),
+      telephone: masquerTelephone(destinataire.telephone),
+      email: masquerEmail(destinataire.email),
+      adresse: masquerAdresse(destinataire.adresse),
+      ville: destinataire.ville ?? null,
+    };
+  }
+
+  return {
+    nom: destinataire.nom ?? null,
+    telephone: destinataire.telephone ?? null,
+    email: destinataire.email ?? null,
+    adresse: destinataire.adresse ?? null,
+    ville: destinataire.ville ?? null,
+  };
+}
+
+// Coordonnees du vendeur qui a enregistre le colis, pour que le client sache
+// qui contacter. Ce sont des informations professionnelles, pas personnelles.
+function agencePublique(expedition) {
+  const vendeur = expedition.creeParId;
+  // creeParId n'est un objet que si la requete a fait un .populate().
+  if (!vendeur || typeof vendeur !== "object" || !vendeur.nom) return null;
+
+  return {
+    nom: vendeur.nom,
+    email: vendeur.email ?? null,
+    telephone: vendeur.telephone ?? null,
+    adresse: expedition.origine ?? null,
+  };
+}
+
+// Liste blanche, et fonction autonome plutot que methode de schema : une
+// methode serait contournee des que quelqu'un ecrit .lean() pour optimiser une
+// requete, et la protection disparaitrait en silence.
 export function serialiserPublic(expedition, maintenant = Date.now()) {
   if (!expedition) return null;
 
@@ -22,11 +95,17 @@ export function serialiserPublic(expedition, maintenant = Date.now()) {
     origine: expedition.origine ?? null,
     destination: expedition.destination ?? null,
     typeLivraison: expedition.typeLivraison ?? null,
+    distanceKm: expedition.distanceKm ?? null,
     creeLe: expedition.createdAt ?? null,
 
+    destinataire: destinatairePublic(expedition.destinataire),
+    agence: agencePublique(expedition),
+
     colis: {
+      description: expedition.colis?.description ?? null,
       taille: expedition.colis?.taille ?? null,
       poids: expedition.colis?.poids ?? null,
+      // valeur volontairement absente
     },
 
     progression: {
@@ -40,6 +119,7 @@ export function serialiserPublic(expedition, maintenant = Date.now()) {
       statut: e.statut,
       libelle: e.libelle ?? LIBELLES[e.statut] ?? null,
       survenuLe: e.survenuLe,
+      // commentaire et auteurId volontairement absents
     })),
   };
 }

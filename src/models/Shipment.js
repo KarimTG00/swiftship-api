@@ -36,6 +36,7 @@ const shipmentSchema = new mongoose.Schema(
     destinataire: {
       nom: { type: String, required: true, trim: true },
       telephone: { type: String, trim: true },
+      email: { type: String, trim: true, lowercase: true },
       adresse: { type: String, trim: true },
       ville: { type: String, trim: true },
     },
