@@ -18,6 +18,7 @@ const limiteConnexion = rateLimit({
 });
 
 router.post("/login", limiteConnexion, async (req, res) => {
+  console.log("dans le login");
   const { email, motDePasse } = req.body ?? {};
 
   if (typeof email !== "string" || typeof motDePasse !== "string") {
