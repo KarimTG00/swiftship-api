@@ -8,6 +8,12 @@ const anonymousClientSchema = new mongoose.Schema(
   {
     _id: { type: String, default: () => crypto.randomUUID() },
 
+    // Renseigne par le visiteur dans le widget de chat, apres son premier
+    // message. Sert uniquement a lui repondre : ce n'est PAS une identite,
+    // c'est le cookie qui identifie (§5).
+    email: { type: String, trim: true, lowercase: true },
+    nom: { type: String, trim: true },
+
     // Informations techniques uniquement (§7) : securite, anti-spam, analyse.
     // L'IP ne sert JAMAIS d'identite : elle change, elle est partagee (NAT,
     // reseau mobile, VPN).

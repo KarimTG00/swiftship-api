@@ -9,6 +9,8 @@ import routesSante from "./routes/health.js";
 import routesAuth from "./routes/auth.js";
 import routesExpeditions from "./routes/shipments.js";
 import routesSuivi from "./routes/tracking.js";
+import routesChat from "./routes/chat.js";
+import routesConversations from "./routes/conversations.js";
 
 export function creerApp() {
   const app = express();
@@ -39,6 +41,8 @@ export function creerApp() {
   app.use("/api/auth", routesAuth);
   app.use("/api/shipments", routesExpeditions);
   app.use("/api/tracking", routesSuivi);
+  app.use("/api/chat", routesChat);
+  app.use("/api/conversations", routesConversations);
 
   // Express 5 : le joker ne s'ecrit plus "*" mais "/{*splat}".
   app.use("/{*splat}", (req, res) => {
