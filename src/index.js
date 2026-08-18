@@ -5,7 +5,7 @@ import { initSockets } from "./sockets/index.js";
 import { env } from "./config/env.js";
 
 // La base est connectee AVANT la creation de l'application : le magasin de
-// sessions reutilise cette connexion, il doit donc la trouver etablie.
+// sessions reutilise cette connexion, il doit donc la trouver etabli.
 await connecterBase();
 
 const app = creerApp();
