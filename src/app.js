@@ -43,6 +43,9 @@ export function creerApp() {
   app.use("/api/tracking", routesSuivi);
   app.use("/api/chat", routesChat);
   app.use("/api/conversations", routesConversations);
+  app.use("/", (req, res) => {
+    res.send("Bienvenue sur la page d'acceuil");
+  });
 
   // Express 5 : le joker ne s'ecrit plus "*" mais "/{*splat}".
   app.use("/{*splat}", (req, res) => {
