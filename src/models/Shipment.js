@@ -44,7 +44,7 @@ const shipmentSchema = new mongoose.Schema(
     // Point de depart de l'itineraire affiche au client (§11). Rempli par
     // defaut avec ADRESSE_AGENCE a la creation, mais stocke ici pour qu'une
     // ancienne expedition garde son origine si l'agence demenage.
-    origine: { type: String, trim: true },
+    // origine: { type: String, trim: true, required: true },
 
     // Ville ou zone d'arrivee. PUBLIC : alimente la carte du suivi.
     // L'adresse precise du destinataire reste dans destinataire.adresse et
@@ -52,7 +52,7 @@ const shipmentSchema = new mongoose.Schema(
     // (§37), n'importe qui possedant un numero verrait le domicile du client.
     destination: { type: String, required: true, trim: true },
 
-    distanceKm: { type: Number, min: 0 }, // facultatif
+    depart: { type: String, min: 0, required: true },
 
     colis: {
       description: String,

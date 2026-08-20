@@ -51,7 +51,7 @@ export function creerSession() {
     store: magasin(),
     cookie: {
       httpOnly: true, // inaccessible au JavaScript de la page (§37)
-      sameSite: "none", // suffisant car front et API partagent le domaine
+      sameSite: (process.env.NODE_ENV = "developement" ? "lax" : "none"), // suffisant car front et API partagent le domaine
       secure: enProduction, // HTTPS obligatoire en production
       maxAge: env.dureeSessionJours * JOUR_MS,
     },

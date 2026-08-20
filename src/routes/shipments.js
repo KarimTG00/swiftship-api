@@ -33,7 +33,9 @@ function valider(corps) {
 
   // Obligatoire : c'est cette date qui pilote la barre de progression cote
   // client. Sans elle, la barre resterait figee a zero.
-  const arrivee = corps?.arriveePrevueLe ? new Date(corps.arriveePrevueLe) : null;
+  const arrivee = corps?.arriveePrevueLe
+    ? new Date(corps.arriveePrevueLe)
+    : null;
   if (!arrivee || Number.isNaN(arrivee.getTime())) {
     erreurs.arriveePrevueLe = "La date d'arrivee prevue est requise.";
   } else if (arrivee.getTime() <= Date.now()) {
@@ -52,7 +54,9 @@ router.post("/", async (req, res) => {
   const { erreurs, nom, destination, arrivee, type } = valider(req.body);
 
   if (Object.keys(erreurs).length > 0) {
-    return res.status(400).json({ erreur: "Formulaire invalide", champs: erreurs });
+    return res
+      .status(400)
+      .json({ erreur: "Formulaire invalide", champs: erreurs });
   }
 
   const maintenant = new Date();
@@ -67,9 +71,9 @@ router.post("/", async (req, res) => {
     },
     // L'adresse de l'agence est copiee sur l'expedition : un ancien colis
     // garde son point de depart meme si l'agence demenage.
-    origine: texte(req.body?.origine) || env.adresseAgence,
+    // origine: texte(req.body?.origine) || env.adresseAgence,
     destination,
-    distanceKm: nombreOuNull(req.body?.distanceKm) ?? undefined,
+    depart: texte(req.body?.depart),
     colis: {
       description: texte(req.body?.colis?.description),
       taille: texte(req.body?.colis?.taille),
