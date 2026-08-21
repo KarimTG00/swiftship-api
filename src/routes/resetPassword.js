@@ -1,9 +1,11 @@
 import nodemailer from "nodemailer";
-import bcrypt from "bcryptjs";
+
 import rateLimit from "express-rate-limit";
-import crypto from "crypto";
+
 import express from "express";
 import { User } from "../models/User.js";
+import crypto from "crypto";
+import { promisify } from "util";
 
 const router = express.Router();
 
@@ -38,9 +40,14 @@ function generateTemporaryPassword() {
 
 // Route récupération
 router.post("/recuperation", passwordResetLimiter, async (req, res) => {
+  const scryptAsync = promisify(crypto.scrypt);
+
+  // Vos constantes pour le format scrypt
+  const ALGO = "scrypt";
+  const SEPARATEUR = "$";
+
   try {
     const { email } = req.body;
-    console.log("voici l'email : ", email);
 
     if (!email) {
       return res.status(400).json({
@@ -53,11 +60,6 @@ router.post("/recuperation", passwordResetLimiter, async (req, res) => {
       email: email.toLowerCase().trim(),
     });
 
-    /*
-     * On ne révèle pas si l'adresse existe ou non.
-     * Cela évite qu'une personne puisse énumérer
-     * les comptes administrateurs.
-     */
     if (!admin) {
       return res.status(200).json({
         message:
@@ -65,14 +67,38 @@ router.post("/recuperation", passwordResetLimiter, async (req, res) => {
       });
     }
 
-    // Génération du nouveau mot de passe temporaire
+    // 1. Génération du nouveau mot de passe temporaire (en clair)
+    // C'est cette variable 'temporaryPassword' que vous devez envoyer par email à l'utilisateur
     const temporaryPassword = generateTemporaryPassword();
 
-    // Hash du mot de passe
-    const hashedPassword = await bcrypt.hash(temporaryPassword, 12);
+    // 2. Configuration et hachage en scrypt
+    const N = 16384;
+    const r = 8;
+    const p = 1;
+    const cleLongueur = 64;
 
-    // Enregistrement dans MongoDB
-    admin.password = hashedPassword;
+    const sel = crypto.randomBytes(16);
+    const derive = await scryptAsync(temporaryPassword, sel, cleLongueur, {
+      N,
+      r,
+      p,
+    });
+
+    // 3. Construction du hash au format compatible avec votre vérification
+    const selB64 = sel.toString("base64");
+    const deriveB64 = derive.toString("base64");
+    const hashCompatibleScrypt = `${ALGO}${SEPARATEUR}${N}${SEPARATEUR}${r}${SEPARATEUR}${p}${SEPARATEUR}${selB64}${SEPARATEUR}${deriveB64}`;
+
+    // 4. Mise à jour de l'utilisateur dans la base de données
+    admin.passwordHash = hashCompatibleScrypt;
+    await admin.save();
+
+    // Variable 'mdp' contenant le vrai mot de passe temporaire pour votre logique d'envoi d'email
+    const mdp = temporaryPassword;
+
+    console.log(`Nouveau mot de passe en clair à envoyer par email : ${mdp}`);
+
+    // Ajoutez ici votre logique pour envoyer 'mdp' par email à l'administrateur...
 
     await admin.save();
 
@@ -91,7 +117,7 @@ Votre mot de passe administrateur a été réinitialisé.
 
 Votre nouveau mot de passe temporaire est :
 
-${temporaryPassword}
+${mdp}
 
 Nous vous recommandons de vous connecter puis de modifier immédiatement ce mot de passe.
 
@@ -116,7 +142,7 @@ L'équipe d'administration
 
           <p>
             <strong style="font-size: 20px;">
-              ${temporaryPassword}
+              ${mdp}
             </strong>
           </p>
 
