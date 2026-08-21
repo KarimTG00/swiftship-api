@@ -16,12 +16,18 @@ import routesResetPasword from "./routes/resetPassword.js";
 export function creerApp() {
   const app = express();
 
+  const originsAutorisees = [
+    "https://swiftshipe.site",
+    "https://swiftshipe.site",
+    // Ajoutez votre ancienne URL Vercel ou localhost si vous en avez encore besoin pour les tests :
+    process.env.origineClient,
+  ].filter(Boolean);
   // Necessaire derriere un reverse proxy (Render, Railway, Nginx) pour que
   // req.ip soit juste et que les cookies Secure fonctionnent.
   app.set("trust proxy", 1);
 
   app.use(helmet());
-  app.use(cors({ origin: env.origineClient, credentials: true }));
+  app.use(cors({ origin: originsAutorisees, credentials: true }));
   app.use(express.json({ limit: "100kb" }));
   app.use(cookieParser());
 
