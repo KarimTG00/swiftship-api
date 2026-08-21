@@ -28,7 +28,7 @@ export async function identiteAnonyme(req, res, next) {
 
     res.cookie(NOM_COOKIE, client._id, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: (process.env.NODE_ENV = "developement" ? "lax" : "none"), // suffisant car front et API partagent le domaine,
       secure: enProduction,
       maxAge: UN_AN_MS,
     });
