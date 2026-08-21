@@ -10,6 +10,7 @@ export async function creerExpeditionAvecTracking(
   donnees,
   essais = ESSAIS_PAR_DEFAUT,
 ) {
+  console.log(donnees);
   for (let i = 0; i < essais; i++) {
     try {
       return await Shipment.create({

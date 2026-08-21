@@ -21,7 +21,9 @@ function masquerNom(valeur) {
   if (!valeur) return null;
   return valeur
     .split(/\s+/)
-    .map((mot) => (mot.length <= 1 ? mot : `${mot[0]}${"*".repeat(mot.length - 1)}`))
+    .map((mot) =>
+      mot.length <= 1 ? mot : `${mot[0]}${"*".repeat(mot.length - 1)}`,
+    )
     .join(" ");
 }
 
@@ -78,7 +80,7 @@ function agencePublique(expedition) {
     nom: vendeur.nom,
     email: vendeur.email ?? null,
     telephone: vendeur.telephone ?? null,
-    adresse: expedition.origine ?? null,
+    adresse: expedition.depart ?? null,
   };
 }
 
@@ -92,14 +94,19 @@ export function serialiserPublic(expedition, maintenant = Date.now()) {
     trackingNumber: expedition.trackingNumber,
     statut: expedition.statut,
     libelle: LIBELLES[expedition.statut] ?? null,
-    origine: expedition.origine ?? null,
     destination: expedition.destination ?? null,
     typeLivraison: expedition.typeLivraison ?? null,
-    distanceKm: expedition.distanceKm ?? null,
+    depart: expedition.depart ?? null,
     creeLe: expedition.createdAt ?? null,
 
     destinataire: destinatairePublic(expedition.destinataire),
-    agence: agencePublique(expedition),
+
+    expediteur: {
+      nom: expedition.expediteur?.nomExpediteur ?? null,
+      email: expedition.expediteur?.emailExpediteur ?? null,
+      numero: expedition.expediteur?.numeroExpediteur ?? null,
+      adresse: expedition.expediteur?.adresseExpediteur ?? null,
+    },
 
     colis: {
       description: expedition.colis?.description ?? null,

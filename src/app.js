@@ -11,6 +11,7 @@ import routesExpeditions from "./routes/shipments.js";
 import routesSuivi from "./routes/tracking.js";
 import routesChat from "./routes/chat.js";
 import routesConversations from "./routes/conversations.js";
+import routesResetPasword from "./routes/resetPassword.js";
 
 export function creerApp() {
   const app = express();
@@ -43,6 +44,7 @@ export function creerApp() {
   app.use("/api/tracking", routesSuivi);
   app.use("/api/chat", routesChat);
   app.use("/api/conversations", routesConversations);
+  app.use("/api/resetPassword", routesResetPasword);
   app.use("/", (req, res) => {
     res.send("Bienvenue sur la page d'acceuil");
   });

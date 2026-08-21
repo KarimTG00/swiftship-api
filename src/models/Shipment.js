@@ -52,7 +52,7 @@ const shipmentSchema = new mongoose.Schema(
     // (§37), n'importe qui possedant un numero verrait le domicile du client.
     destination: { type: String, required: true, trim: true },
 
-    depart: { type: String, min: 0, required: true },
+    depart: { type: String, required: true },
 
     colis: {
       description: String,
@@ -72,6 +72,13 @@ const shipmentSchema = new mongoose.Schema(
 
     // Voir src/domaine/progression.js : la barre est calculee a partir de ces
     // seuls horodatages, sans tache de fond.
+
+    expediteur: {
+      nomExpediteur: { type: String, required: true },
+      emailExpediteur: { type: String, required: true },
+      adresseExpediteur: { type: String, required: true },
+      numeroExpediteur: { type: Number, required: true },
+    },
     progression: {
       demarreLe: Date,
       arriveePrevueLe: Date,

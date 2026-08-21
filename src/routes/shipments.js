@@ -28,6 +28,22 @@ function valider(corps) {
   const nom = texte(corps?.destinataire?.nom);
   if (!nom) erreurs["destinataire.nom"] = "Le nom du destinataire est requis.";
 
+  const nomExpediteur = texte(corps?.expediteur.nom);
+  if (!nomExpediteur)
+    erreurs["expediteur.nom"] = "Le nom de l'expediteur est requis.";
+
+  const emailExpediteur = texte(corps?.expediteur.email);
+  if (!emailExpediteur)
+    erreurs["expediteur.email"] = "L'email de l'expediteur est requis.";
+
+  const adresseExpediteur = texte(corps?.expediteur.adresse);
+  if (!adresseExpediteur)
+    erreurs["expediteur.adresse"] = "L'adresse de l'expediteur est requis.";
+
+  const numeroExpediteur = texte(corps?.expediteur.numero);
+  if (!numeroExpediteur)
+    erreurs["expediteur.numero"] = "Le numero de l'expediteur est requis.";
+
   const destination = texte(corps?.destination);
   if (!destination) erreurs.destination = "La destination est requise.";
 
@@ -51,7 +67,17 @@ function valider(corps) {
 }
 
 router.post("/", async (req, res) => {
-  const { erreurs, nom, destination, arrivee, type } = valider(req.body);
+  const {
+    erreurs,
+    nom,
+    destination,
+    arrivee,
+    type,
+    nomExpediteur,
+    adresseExpediteur,
+    emailExpediteur,
+    numeroExpediteur,
+  } = valider(req.body);
 
   if (Object.keys(erreurs).length > 0) {
     return res
@@ -68,6 +94,13 @@ router.post("/", async (req, res) => {
       email: texte(req.body?.destinataire?.email),
       adresse: texte(req.body?.destinataire?.adresse),
       ville: texte(req.body?.destinataire?.ville),
+    },
+
+    expediteur: {
+      nomExpediteur: texte(req.body?.expediteur?.nom),
+      emailExpediteur: texte(req.body?.expediteur?.email),
+      adresseExpediteur: texte(req.body?.expediteur?.adresse),
+      numeroExpediteur: texte(req.body?.expediteur?.numero),
     },
     // L'adresse de l'agence est copiee sur l'expedition : un ancien colis
     // garde son point de depart meme si l'agence demenage.
@@ -88,6 +121,7 @@ router.post("/", async (req, res) => {
       enPause: false,
       cumulPauseMs: 0,
     },
+
     creeParId: req.utilisateur._id,
     evenements: [
       {
@@ -98,6 +132,7 @@ router.post("/", async (req, res) => {
       },
     ],
   });
+  console.log(expedition);
 
   res.status(201).json({ expedition });
 });

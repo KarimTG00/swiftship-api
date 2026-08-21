@@ -37,33 +37,14 @@ router.get("/:numero", limiteSuivi, async (req, res) => {
 
   if (!expedition) return res.status(404).json(introuvable);
 
-  const { destination, depart } = await Shipment.findOne(
-    { trackingNumber: numero },
-    { destination: 1, depart: 1 },
-  );
-
-  let itineraire;
-
-  try {
-    const response = await axios.get(
-      "https://maps.googleapis.com/maps/api/directions/json",
-      {
-        params: {
-          depart,
-          destination,
-          key: process.env.GOOGLE_MAPS_API_KEY,
-          mode: "driving", // ou 'walking', 'bicycling', 'transit'
-        },
-      },
-    );
-
-    itineraire = response.json();
-  } catch (error) {
-    itineraire = { erreur: " Itinéraire pas disponible pour le moment" };
-  }
-  // serialiserPublic est une liste blanche : nom, telephone et adresse du
+  // }
+  // // serialiserPublic est une liste blanche : nom, telephone et adresse du
   // destinataire, valeur du colis et commentaires internes ne sortent jamais.
-  res.json({ colis: serialiserPublic(expedition), itineraire: itineraire });
+
+  res.json({
+    colis: serialiserPublic(expedition),
+    // itineraire: itineraire
+  });
 });
 
 export default router;
