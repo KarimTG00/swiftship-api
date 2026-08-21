@@ -39,6 +39,7 @@ function magasin() {
   });
 }
 
+const estProd = process.env.NODE_ENV === "production";
 export function creerSession() {
   return session({
     name: "swiftshipe.sid",
@@ -51,7 +52,7 @@ export function creerSession() {
     store: magasin(),
     cookie: {
       httpOnly: true, // inaccessible au JavaScript de la page (§37)
-      sameSite: (process.env.NODE_ENV = "developement" ? "lax" : "none"), // suffisant car front et API partagent le domaine
+      sameSite: estProd ? "none" : "lax", // suffisant car front et API partagent le domaine
       secure: enProduction, // HTTPS obligatoire en production
       maxAge: env.dureeSessionJours * JOUR_MS,
     },

@@ -14,7 +14,7 @@ const UN_AN_MS = 365 * 24 * 60 * 60 * 1000;
 // faille XSS ne permet pas de le voler et d'usurper une conversation.
 export async function identiteAnonyme(req, res, next) {
   const idCookie = req.cookies?.[NOM_COOKIE];
-
+  const estProd = process.env.NODE_ENV === "production";
   let client = null;
   if (typeof idCookie === "string" && idCookie.length > 0) {
     client = await AnonymousClient.findById(idCookie);
@@ -28,7 +28,7 @@ export async function identiteAnonyme(req, res, next) {
 
     res.cookie(NOM_COOKIE, client._id, {
       httpOnly: true,
-      sameSite: (process.env.NODE_ENV = "developement" ? "lax" : "none"), // suffisant car front et API partagent le domaine,
+      sameSite: estProd ? "none" : " lax", // suffisant car front et API partagent le domaine,
       secure: enProduction,
       maxAge: UN_AN_MS,
     });
