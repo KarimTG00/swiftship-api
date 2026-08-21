@@ -18,7 +18,8 @@ export function creerApp() {
 
   const originsAutorisees = [
     "https://swiftshipe.site",
-    "https://swiftshipe.site",
+    "https://www.swiftshipe.site",
+    ,
     // Ajoutez votre ancienne URL Vercel ou localhost si vous en avez encore besoin pour les tests :
     process.env.origineClient,
   ].filter(Boolean);
